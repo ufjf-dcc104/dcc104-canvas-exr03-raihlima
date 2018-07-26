@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Jogo 01</title>
+    <script src="BarraStatus.js"></script>
+    <script src="Personagem.js"></script>
+    <script src="Inimigo.js"></script>
+  </head>
+  <body>
+    <h1>Jogo 03</h1>
+    <canvas id="canvas" width="700" height="500"></canvas>
+    <script>
+      //Audio
+      var somIni = new Audio();
+      somIni.src = "Som/Inicio.m4a";
+
+      var somFim = new Audio();
+      somFim.src = "Som/Fim.m4a";
+
+      var somSel = new Audio();
+      somSel.src = "Som/Selecao.m4a";
+
+      var somPulo = new Audio();
+      somPulo.src = "Som/Pulo.m4a";
+
+      var somFuro = new Audio();
+      somFuro.src = "Som/Furo.m4a";
+
+
+      //Tela
+      var canvas = document.getElementsByTagName("canvas")[0];
+      var ctx = canvas.getContext("2d");
+      var dt = anterior = 0;
+
+      var imagem = new Image();
+      imagem.src = "bgJogo.png";
+
+      var personagem =  0;
+      var pular = true;
+      var barra = new BarraStatus();
+      var inimigo = [];
+
+      for(var i=0;i<5;i++){
+        inimigo[i]=new Inimigo(i);
+      }
+
+      //Tela, gravidade do jogo
+      var cenario = 0;
+      var gravidade = 200;
+
+      //Ponto obtido durante o Jogo
+      var pontoMax = 0;
+      var pontoAtual = 0;
+
+      //var controleTempo = 0;
+      function atualizar(t){
+
+        if(cenario == 0){
+          somIni.play();
+          ctx.fillStyle = "black";
+          ctx.fillRect(0,0, canvas.width, canvas.height);
+
+          ctx.drawImage(imagem,0,0);
+
+          ctx.textAlign = "center";
+          ctx.font = '70pt Arial';
+          ctx.fillStyle = "wheat";
+          ctx.strokeStyle = "black";
+          //ctx.strokeText("Fuga do Balão", 350, 150);
+          ctx.fillText("Fuga do Balão", 350, 150);
+          ctx.strokeText("Fuga do Balão", 350, 150);
+          ctx.font = '20pt Arial';
+          ctx.strokeText("Pressione qualquer tecla para continuar", 350, 470);
+
+          ctx.fillText("Pressione qualquer tecla para continuar", 350, 470);
+
+          requestAnimationFrame(atualizar);
+
+
+        } else if (cenario == 1){
+          somIni.play();
+          var balao = new Image();
+          balao.src = "balao.png";
+
+          ctx.fillStyle = "black";
+          ctx.fillRect(0,0, canvas.width, canvas.height);
+          ctx.drawImage(imagem,0,0);
+
+          ctx.textAlign = "center";
+          ctx.font = '40pt Arial';
+          ctx.fillStyle = "wheat";
+          ctx.strokeStyle="black";
+          ctx.strokeText("Selecione o personagem", 350, 150);
+          ctx.fillText("Selecione o personagem", 350, 150);
+          ctx.font = '30pt Arial';
+
+          ctx.textAlign = "start";
+          ctx.fillStyle = "gray";
+          //Naves
+          if(personagem == 0){
+
+            ctx.strokeRect(90,290, 50, 60);
+          }  else if(personagem == 1){
+
+            ctx.strokeRect(290,290, 50, 60);
+          }  else if(personagem == 2){
+
+            ctx.strokeRect(490,290, 50, 60);
+          }
+
+          ctx.fillStyle = "green";
+          ctx.fillText("Verde", 70, 450);
+          //ctx.fillRect(100,300, 30, 30);
+          ctx.drawImage(balao,0,0,30,40,100,300,30,40);
+          ctx.fillStyle = "wheat";
+          ctx.fillText("Areia", 270, 450);
+          //ctx.fillRect(300,300, 30, 30);
+          ctx.drawImage(balao,30,0,30,40,300,300,30,40);
+
+          ctx.fillStyle = "teal";
+          ctx.fillText("Teal", 470, 450);
+          //ctx.fillRect(500,300, 30, 30);
+          ctx.drawImage(balao,60,0,30,40,500,300,30,40);
+
+
+          requestAnimationFrame(atualizar);
+
+        } else if (cenario == 2){
+          somFim.pause();
+          somIni.play();
+          ctx.drawImage(imagem,0,0);
+          dt = (t - anterior)/1000;
+          ctx.textAlign = "start";
+          //Desenhar o fundo
+          //ctx.fillStyle = "black";
+        //  ctx.fillRect(0,0, canvas.width, canvas.height);
+
+          //Desenhar o personagem, Barra e a Base
+          personagem.desenhar(ctx);
+          personagem.atualizar(dt);
+          for(var i=0;i<4;i++){
+            inimigo[i].desenhar(ctx);
+            inimigo[i].atualizar(ctx);
+            if(inimigo[i].contaPonto()==true){
+              pontoAtual+=1;
+              inimigo[i].resetarInimigo();
+            }
+
+            //Testar colisao
+            if(personagem.colisao(inimigo[i])==true){
+              somFuro.load();
+              somFuro.play();
+                cenario=3;
+            }
+          }
+
+        if(this.pontoAtual>this.pontoMax){
+          this.pontoMax=this.pontoAtual;
+        }
+
+
+          //Teste colisao
+          if(personagem.vida<1){
+            somFim.play();
+            cenario=3;
+            somFim.load();
+            somFim.play();
+          }
+
+          barra.desenhar(ctx,this.pontoAtual, this.pontoMax);
+          anterior = t;
+          requestAnimationFrame(atualizar);
+
+        } else if (cenario ==3){
+          //Tela de Game Over
+          somIni.pause();
+          somFim.play();
+          ctx.fillStyle = "black";
+          ctx.fillRect(0,0, canvas.width, canvas.height);
+
+          //Texto Game Over
+          ctx.textAlign = "center";
+          ctx.fillStyle = "wheat";
+          ctx.font = '70pt Arial';
+          ctx.fillText("GAME OVER", 350, 150);
+          ctx.fillText("Pontuação", 350, 321);
+          ctx.fillText(pontoAtual, 350, 421);
+
+          for(var i=0;i<5;i++){
+            inimigo[i]=new Inimigo(i);
+          }
+
+          anterior = t;
+          requestAnimationFrame(atualizar);
+        }
+
+      }
+
+
+      addEventListener("keydown", function (e) {
+    switch (e.keyCode) {
+      case 13://Enter
+        if(cenario==1){
+          cenario = 2;
+          personagem= new Personagem (personagem);
+          personagem.resetar();
+          personagem.vida=3;
+          personagem.y=30;
+        } else if(cenario==3){
+          cenario =2;
+        }
+        case 37: //Botão Esquerdo
+          if(cenario == 1){
+            if(personagem ==2 || personagem ==1){
+              personagem-=1;
+              somSel.load();
+              somSel.play();
+            }
+          }
+            break;
+        case 39: //Botão Direito
+        if(cenario == 1){
+          if(personagem == 0 || personagem == 1){
+            personagem += 1;
+            somSel.load();
+            somSel.play();
+          }
+        }
+          break;
+        case 32:
+        case 38: //Botão Cima
+        if(cenario==2){
+          if(pular === true){
+            somPulo.load();
+            somPulo.play();
+            personagem.ay = -120;
+            personagem.vy = -120;
+            pular = false;
+
+          }
+
+            break;
+          }
+        default:
+          if(cenario==0){
+            cenario=1;
+          }  else if(cenario==3){
+              cenario=2;
+              personagem.vida=3;
+              personagem.resetar();
+          }
+    }
+});
+addEventListener("keyup", function (e) {
+    switch (e.keyCode) {
+        case 37: //Botão Esquerdo
+            break;
+        case 39: //Botão Direito
+            break;
+        case 32:
+        case 38: //Botão Cima
+          if(cenario==2){
+            personagem.ay = 0;
+            pular = true;
+          }
+            break;
+        default:
+          if(cenario==0){
+          cenario=1;
+          } else if(cenario==3){
+            personagem.resetar();
+            pontoAtual = 0;
+            pontoAtual=0;
+            pontoMax=0;
+              cenario=2;
+              somIni.load();
+          }
+    }
+});
+
+
+      requestAnimationFrame(atualizar);
+    </script>
+  </body>
+</html>
