@@ -9,7 +9,7 @@ function Personagem(cor){
   this.height = 40;
   this.vida=1;
   this.imagem = new Image();
-  this.imagem.src = "balao.png";
+  this.imagem.src = "Imagem/balao.png";
   //Seleção de color
   if(cor==0){
     this.color = "green";
